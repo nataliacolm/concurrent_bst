@@ -6,7 +6,7 @@ import java.util.concurrent.atomic.AtomicStampedReference;
 
 class Node
 {
-    // Stamp: 
+    // Stamp:
     // 0 = unflagged & untagged
     // 10 = flagged & untagged
     // 1 = unflagged & tagged
@@ -121,14 +121,14 @@ public class ConcurrentBST
            {
                Node terminal = this.seekRecord.terminal;
                if (terminal.getKey() != key)
-               {    
+               {
                     // no key found.
                     return false;
-               }   
-           
+               }
+
                 // determine where result should stand
                 // result = CAS();
-                // 
+                //
 
                 // CAS instruction succeeds.
                 if (result)
@@ -175,28 +175,35 @@ public class ConcurrentBST
     public static void main (String [] args)
     {
         // Set initialize the Seek Record
-
-        /*
-        bst = new Node(100);
+        ConcurrentBST bst = new ConcurrentBST();
+        bst.root = new Node(100);
         Node temp1 = new Node(90);
         Node temp2 = new Node(110);
         Node temp3 = new Node(95);
         Node temp4 = new Node(85);
         Node temp5 = new Node(88);
         Node temp6 = new Node(70);
+        Node temp7 = new Node(87);
+        Node temp8 = new Node(89);
+        Node temp9 = new Node(75);
+        Node temp10 = new Node(65);
 
-        bst.left = new AtomicStampedReference<>(temp1, 0);
-        bst.right = new AtomicStampedReference<>(temp2, 0);
+        bst.root.left = new AtomicStampedReference<>(temp1, 0);
+        bst.root.right = new AtomicStampedReference<>(temp2, 0);
         temp1.left = new AtomicStampedReference<>(temp4, 0);
-        temp1.left = new AtomicStampedReference<>(temp3, 0);
+        temp1.right = new AtomicStampedReference<>(temp3, 0);
         temp4.left = new AtomicStampedReference<>(temp6, 0);
         temp4.right = new AtomicStampedReference<>(temp5, 0);
+        temp5.left = new AtomicStampedReference<>(temp7, 0);
+        temp5.right = new AtomicStampedReference<>(temp8, 0);
+        temp6.left = new AtomicStampedReference<>(temp10, 0);
+        temp6.right = new AtomicStampedReference<>(temp9, 0);
 
-        seekRecord = new SeekRecord(bst, temp1, temp1, temp4);
+        bst.seekRecord = new SeekRecord(bst.root, temp1, temp1, temp4);
 
-        seek(88);
+        bst.seek(65);
 
-*/
+        System.out.println(bst.seekRecord.terminal.getKey());
 
     }
 }
