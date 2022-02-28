@@ -47,7 +47,8 @@ public class ConcurrentBST
 {
     public Node root;
     public SeekRecord seekRecord;
-    // Atomic type MODE?
+    private final int INJECTION = 1;
+    private final int CLEANUP = 0;
 
     public AtomicStampedReference<Node> getNextChildField(int key, Node current)
     {
@@ -60,6 +61,33 @@ public class ConcurrentBST
             return current.right;
         }
     }
+
+    // Watch out: overloaded method
+    public Node getAddressOfNextChildField(int key, Node child)
+    {
+        if (child.getKey() > key)
+        {
+            return child.left.getReference();
+        }
+        else
+        {
+            return child.right.getReference();
+        }
+    }
+
+    // Watch out: overloaded method.
+    public Node getAddressOfNextChildField(Node node, Node child)
+    {
+        if (child.getKey() < node.getKey())
+        {
+            return node.left.getReference();
+        }
+        else
+        {
+            return node.right.getReference();
+        }
+    }
+
 
     public void seek(int key)
     {
@@ -102,24 +130,29 @@ public class ConcurrentBST
         seekRecord.terminal = current;
         return;
     }
-/*
+
     public boolean delete(int key)
     {
         // Injection mode: mark the leaf node that contains the given key
         // by flagging its incoming edge
         // Cleanup mode: remove leaf node that was flagges during injection.
 
-       // mode = injection
+       int mode = INJECTION;
        while (true)
        {
            seek(key); // updates seekRecord
            Node parent = this.seekRecord.parent;
+           Node terminal = null;
 
+
+            // Test section
+            AtomicStampedReference<Node> addressOfChildField = getNextChildField(key, parent);
+           // End of test section
            // address of child field
 
            if (mode == INJECTION)
            {
-               Node terminal = this.seekRecord.terminal;
+               terminal = this.seekRecord.terminal;
                if (terminal.getKey() != key)
                {
                     // no key found.
@@ -127,26 +160,32 @@ public class ConcurrentBST
                }
 
                 // determine where result should stand
-                // result = CAS();
-                //
+                boolean result = addressOfChildField.compareAndSet(terminal, terminal, 0, 10);
 
                 // CAS instruction succeeds.
                 if (result)
                 {
                     mode = CLEANUP;
-                    done = Cleanup();
+                    // TODO
+                    // done = Cleanup();
+                    // dummy hold until cleanup is complete
+                    boolean done = true;
 
                     if (done)
-                    return true;
+                        return true;
                 }
 
                 // CAS instruction fails.
                 else
                 {
+                    int [] stamp = new int [1];
                     // flag
-                    if (address == terminal && flag || tag)
+                    Node address = addressOfChildField.get(stamp);
+                    // All possible flag or tags
+                    if (address == terminal && (stamp[0] == 10 || stamp[0] == 1 || stamp[0] == 11))
                     {
-                        Cleanup();
+                        // TODO
+                        // Cleanup();
                     }
                 }
 
@@ -161,7 +200,11 @@ public class ConcurrentBST
 
                 else
                 {
-                    done = cleanup();
+                    // TODO
+                    // done = cleanup();
+
+                    // dummy hold until cleanup is complete.
+                    boolean done = true;
                     if (done)
                     {
                         return true;
@@ -170,7 +213,6 @@ public class ConcurrentBST
             }
        }
     }
-    */
 
     public static void main (String [] args)
     {
@@ -202,6 +244,7 @@ public class ConcurrentBST
         bst.seekRecord = new SeekRecord(bst.root, temp1, temp1, temp4);
 
         bst.seek(65);
+
 
         System.out.println(bst.seekRecord.terminal.getKey());
 
