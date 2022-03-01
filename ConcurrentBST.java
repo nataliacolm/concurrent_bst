@@ -2,6 +2,8 @@ import java.util.*;
 import java.io.*;
 import java.util.concurrent.atomic.AtomicStampedReference;
 
+import org.w3c.dom.Node;
+
 // For testing purposes, key is of type int.
 
 class Node
@@ -88,6 +90,18 @@ public class ConcurrentBST
         }
     }
 
+    //Return address of child field that contains address of the sibling of the next node on the access path
+    public Node getAddressOfSiblingChildField(Node node, Node child)
+    {
+        if (child.getKey() < node.getKey())
+        {
+            return node.right.getReference();
+        }
+        else
+        {
+            return node.left.getReference();
+        }
+    }
 
     public void seek(int key)
     {
@@ -213,6 +227,62 @@ public class ConcurrentBST
             }
        }
     }
+    // Removes a leaf node, which is currently under deletion, and its parent from the tree
+    public boolean cleanup(int key){
+
+        //retrieve all addresses in the seekRecord for easy access
+        Node ancestor = seekRecord.ancestor;
+        Node succesor = seekRecord.succesor;
+        Node parent = seekRecord.parent;
+        Node terminal = seekRecord.terminal;
+
+        // obtain the addresses on which atomic instructions will be executed
+        //first obtain the address of the field of the ancestor node that will be modified
+        Node addressOfSuccessorField = getAddressOfNextChildField(ancestor, succesor);
+
+        //retrieve the address of the children fields of the parent node
+        Node addressOfChildField = getAddressOfNextChildField(parent, terminal);
+        Node addressOfSiblingField = getAddressOfSiblingChildField(parent, terminal);
+
+        //create the stamp
+        int [] stamp = new int [1];
+                
+        // if not flag then the leaf node is not flagged for deletion
+        if (stamp[0] == 1 || stamp[0] ==1 )
+        {
+            //The leaf node is not flagged for deletion, thus the siblign node must be flagged for deletion
+            //switch the sibling address
+            addressOfSiblingField = addressOfChildField;
+
+        }
+        //end of if
+        
+        /* 
+        TODO THIS WEEK
+
+        //Freeze step: tag the sibling edge if not already tagged
+        //no modify operation can occur at this edge now
+        
+        //Create if not Tag statement 
+        if not tag then
+            BTS(addressofSiblingField, tag)
+        //end of if
+
+        //read the flag and address fields
+        flag = addressOfSiblingField.get(stamp);
+        */
+
+        //the flag field will be copied to the new edge that will be created
+        //prune step: make the sibling node a direct child of the ancestor node
+        //boolean result = addressOfSuccessorField.compareAndSet(succesor, parent, 0, 1);
+
+        //dummy hold until prune is complete
+        boolean done = true;
+        if (done ==true){
+            return true;
+        }
+
+     }
 
     public static void main (String [] args)
     {
