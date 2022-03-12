@@ -227,6 +227,39 @@ public class ConcurrentBST
             }
        }
     }
+    public boolean insert(int key){
+        while(true){
+            seek(key);
+            if (seekRecord.terminal.key != key){
+                Node parent = this.seekRecord.parent;
+                Node terminal = this.seekRecord.parent;
+                
+                Node addressOfChildField = getAddressOfNextChildField(key,parent);
+                
+                // create two nodes newInternal and newLeaf and initialize them appropriately
+                Node newInternal = new Node(key);
+                
+                boolean result = addressOfChildField.compareAndSet(terminal, newInternal, 0, 0);
+                
+                if (result){
+                    return true;   
+                }
+                else {
+                    int [] stamp = new int [1];
+                    // flag
+                    Node address = addressOfChildField.get(stamp);
+                    if (address == terminal && (stamp[0] == 10 || stamp[0] == 1 || stamp[0] == 11)) {
+                        // TODO
+                        // Cleanup();
+                    }
+                }
+            }
+            else {
+                return false;   
+            }
+        }
+    
+    }
     // Removes a leaf node, which is currently under deletion, and its parent from the tree
     public boolean cleanup(int key){
 
