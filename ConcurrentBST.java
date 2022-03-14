@@ -2,7 +2,7 @@ import java.util.*;
 import java.io.*;
 import java.util.concurrent.atomic.AtomicStampedReference;
 
-import org.w3c.dom.Node;
+// import org.w3c.dom.Node;
 
 // For testing purposes, key is of type int.
 
@@ -42,7 +42,6 @@ class SeekRecord {
 
 public class ConcurrentBST {
     public Node root;
-    public SeekRecord seekRecord;
     private final int INJECTION = 1;
     private final int CLEANUP = 0;
 
@@ -82,7 +81,7 @@ public class ConcurrentBST {
         }
     }
 
-    public void seek(int key) {
+    public SeekRecord seek(int key) {
         Node ancestor = root;
         Node succesor = root.left.getReference();
         Node parent = root.left.getReference();
@@ -111,11 +110,7 @@ public class ConcurrentBST {
             }
         }
 
-        seekRecord.ancestor = ancestor;
-        seekRecord.succesor = succesor;
-        seekRecord.parent = parent;
-        seekRecord.terminal = current;
-        return;
+        return new SeekRecord(ancestor, succesor, parent, current);
     }
 
     public boolean delete(int key) {
@@ -125,8 +120,8 @@ public class ConcurrentBST {
 
         int mode = INJECTION;
         while (true) {
-            seek(key); // updates seekRecord
-            Node parent = this.seekRecord.parent;
+            SeekRecord seekRecord = seek(key); // updates seekRecord
+            Node parent = seekRecord.parent;
             Node terminal = null;
 
             // Test section
@@ -135,7 +130,7 @@ public class ConcurrentBST {
             // address of child field
 
             if (mode == INJECTION) {
-                terminal = this.seekRecord.terminal;
+                terminal = seekRecord.terminal;
                 if (terminal.getKey() != key) {
                     // no key found.
                     return false;
@@ -191,25 +186,42 @@ public class ConcurrentBST {
 
     public boolean insert(int key) {
         while (true) {
-            seek(key);
-            if (seekRecord.terminal.key != key) {
-                Node parent = this.seekRecord.parent;
-                Node terminal = this.seekRecord.parent;
+            SeekRecord seekRecord = seek(key);
+            if (seekRecord.terminal.getKey() != key) {
+                Node parent = seekRecord.parent;
+                Node terminal = seekRecord.terminal;
 
                 Node addressOfChildField = getAddressOfNextChildField(key, parent);
 
                 // create two nodes newInternal and newLeaf and initialize them appropriately
                 Node newInternal = new Node(key);
 
-                boolean result = addressOfChildField.compareAndSet(terminal, newInternal, 0, 0);
+                // initialize to false
+                boolean result = false;
 
+                if (addressOfChildField.getKey() == terminal.getKey())
+                {
+                    result = true;
+
+                    if (addressOfChildField.getKey() > key)
+                    {
+                        addressOfChildField.left = new AtomicStampedReference<Node>(newInternal, 0);
+                    }
+
+                    else
+                    {
+                        addressOfChildField.right = new AtomicStampedReference<Node>(newInternal, 0);
+                    }
+                }
+                
                 if (result) {
                     return true;
                 } else {
-                    int[] stamp = new int[1];
+                    AtomicStampedReference<Node> child = getNextChildField(key, parent);
+                    int stamp = child.getStamp();
                     // flag
-                    Node address = addressOfChildField.get(stamp);
-                    if (address == terminal && (stamp[0] == 10 || stamp[0] == 1 || stamp[0] == 11)) {
+                    Node address = child.getReference();
+                    if (address == terminal && (stamp == 10 || stamp == 1 || stamp == 11)) {
                         // TODO
                         // Cleanup();
                     }
@@ -224,6 +236,8 @@ public class ConcurrentBST {
     // Removes a leaf node, which is currently under deletion, and its parent from
     // the tree
     public boolean cleanup(int key) {
+
+        SeekRecord seekRecord = seek(key);
 
         // retrieve all addresses in the seekRecord for easy access
         Node ancestor = seekRecord.ancestor;
@@ -258,10 +272,10 @@ public class ConcurrentBST {
          * The next step is the Freeze step which you tag the sibling edge if its not
          * already tagged
          * there cannot be any modifying operation at this point on the edge
-         * 
+         *
          * In here if the stamps are untagged then we do a Bit test and set instruction.
          * Instead of doing this BTS we can simulate it doing a CAS instruction.
-         * 
+         *
          * after this we get the result which before we will need to get the address of
          * the sibling field and the flag
          * I did a new helper function to get the address of the sibling field which is
@@ -283,7 +297,7 @@ public class ConcurrentBST {
         }
 
         // get the address of the sibling field
-        Node address = addressOfSiblingField.get(stamp);
+        //Node address = addressOfSiblingField.get(stamp);
 
         // the flag field will be copied to the new edge that will be created
         // prune step: make the sibling node a direct child of the ancestor node
@@ -296,6 +310,7 @@ public class ConcurrentBST {
             return true;
         }
 
+        return false;
     }
 
     public static void main(String[] args) {
@@ -324,11 +339,23 @@ public class ConcurrentBST {
         temp6.left = new AtomicStampedReference<>(temp10, 0);
         temp6.right = new AtomicStampedReference<>(temp9, 0);
 
-        bst.seekRecord = new SeekRecord(bst.root, temp1, temp1, temp4);
+        SeekRecord record = bst.seek(65);
 
-        bst.seek(65);
+        System.out.println(record.terminal.getKey());
 
-        System.out.println(bst.seekRecord.terminal.getKey());
+        boolean gotInserted = bst.insert(55);
+        boolean gotInserted2 = bst.insert(68);
+
+        System.out.println(gotInserted);
+        System.out.println(gotInserted2);
+
+        record = bst.seek(55);
+        System.out.println(record.parent.getKey());
+        System.out.println(record.parent.left.getReference().getKey());
+
+        record = bst.seek(68);
+        System.out.println(record.parent.getKey());
+        System.out.println(record.parent.right.getReference().getKey());
 
     }
 }
