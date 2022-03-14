@@ -251,35 +251,13 @@ public class ConcurrentBST {
 
         // create the stamp
         int[] stamp = new int[1];
-
-        Node address = addressOfChildField.get(stamp);
-
+        
         // if not flag then the leaf node is not flagged for deletion
         if (stamp[0] == 1 || stamp[0] == 0) 
         {
             addressOfSiblingField = addressOfChildField;
         }
         // end of if
-
-        /*
-         * Problem*
-         * The next step is the Freeze step which you tag the sibling edge if its not
-         * already tagged
-         * there cannot be any modifying operation at this point on the edge
-         *
-         * In here if the stamps are untagged then we do a Bit test and set instruction.
-         * Instead of doing this BTS we can simulate it doing a CAS instruction.
-         *
-         * after this we get the result which before we will need to get the address of
-         * the sibling field and the flag
-         * I did a new helper function to get the address of the sibling field which is
-         * described in the document
-         * but when attempting to get the address with this helper function with the
-         * stamp, is not possible since the helper function is not in
-         * AtomicStampedReference
-         * Cant wrap my head around this
-         * refer to page 14 for more information on this part.
-         */
 
         // if not tagged then CAS instruction
         if (stamp[0] == 10 || stamp[0] == 0) 
@@ -300,15 +278,6 @@ public class ConcurrentBST {
 
         // set mark to flag & untagged = 10
         boolean result = addressOfSuccessorField.compareAndSet(successor, address2, 0, 10);
-
-        /*
-        boolean done = true;
-        if (done == true) {
-            return true;
-        }
-
-        return false;
-        */
 
         return result;
     }
