@@ -28,13 +28,13 @@ class Node {
 
 class SeekRecord {
     public Node ancestor;
-    public Node succesor;
+    public Node successor;
     public Node parent;
     public Node terminal;
 
-    SeekRecord(Node ancestor, Node succesor, Node parent, Node terminal) {
+    SeekRecord(Node ancestor, Node successor, Node parent, Node terminal) {
         this.ancestor = ancestor;
-        this.succesor = succesor;
+        this.successor = successor;
         this.parent = parent;
         this.terminal = terminal;
     }
@@ -63,27 +63,27 @@ public class ConcurrentBST {
     }
 
     // Watch out: overloaded method.
-    public Node getAddressOfNextChildField(Node node, Node child) {
+    public AtomicStampedReference<Node> getAddressOfNextChildField(Node node, Node child) {
         if (child.getKey() < node.getKey()) {
-            return node.left.getReference();
+            return node.left;
         } else {
-            return node.right.getReference();
+            return node.right;
         }
     }
 
     // Return address of child field that contains address of the sibling of the
     // next node on the access path
-    public Node getAddressOfSiblingChildField(Node node, Node child) {
+    public AtomicStampedReference<Node> getAddressOfSiblingChildField(Node node, Node child) {
         if (child.getKey() < node.getKey()) {
-            return node.right.getReference();
+            return node.right;
         } else {
-            return node.left.getReference();
+            return node.left;
         }
     }
 
     public SeekRecord seek(int key) {
         Node ancestor = root;
-        Node succesor = root.left.getReference();
+        Node successor = root.left.getReference();
         Node parent = root.left.getReference();
         Node current = parent.left.getReference();
 
@@ -94,7 +94,7 @@ public class ConcurrentBST {
         while (next != null) {
             if (childFieldAtParent.getStamp() == 00 || childFieldAtParent.getStamp() == 10) {
                 ancestor = parent;
-                succesor = current;
+                successor = current;
             }
 
             parent = current;
@@ -110,7 +110,7 @@ public class ConcurrentBST {
             }
         }
 
-        return new SeekRecord(ancestor, succesor, parent, current);
+        return new SeekRecord(ancestor, successor, parent, current);
     }
 
     public boolean delete(int key) {
@@ -143,9 +143,8 @@ public class ConcurrentBST {
                 if (result) {
                     mode = CLEANUP;
                     // TODO
-                    // done = Cleanup();
+                    boolean done = cleanup(seekRecord);
                     // dummy hold until cleanup is complete
-                    boolean done = true;
 
                     if (done)
                         return true;
@@ -159,7 +158,7 @@ public class ConcurrentBST {
                     // All possible flag or tags
                     if (address == terminal && (stamp[0] == 10 || stamp[0] == 1 || stamp[0] == 11)) {
                         // TODO
-                        // Cleanup();
+                        boolean temp = cleanup(seekRecord);
                     }
                 }
 
@@ -172,10 +171,9 @@ public class ConcurrentBST {
 
                 else {
                     // TODO
-                    // done = cleanup();
+                    boolean done = cleanup(seekRecord);
 
                     // dummy hold until cleanup is complete.
-                    boolean done = true;
                     if (done) {
                         return true;
                     }
@@ -235,35 +233,31 @@ public class ConcurrentBST {
 
     // Removes a leaf node, which is currently under deletion, and its parent from
     // the tree
-    public boolean cleanup(int key) {
-
-        SeekRecord seekRecord = seek(key);
-
+    public boolean cleanup(SeekRecord seekRecord) {
         // retrieve all addresses in the seekRecord for easy access
         Node ancestor = seekRecord.ancestor;
-        Node succesor = seekRecord.succesor;
+        Node successor = seekRecord.successor;
         Node parent = seekRecord.parent;
         Node terminal = seekRecord.terminal;
 
         // obtain the addresses on which atomic instructions will be executed
         // first obtain the address of the field of the ancestor node that will be
         // modified
-        Node addressOfSuccessorField = getAddressOfNextChildField(ancestor, succesor);
+        AtomicStampedReference<Node> addressOfSuccessorField = getAddressOfNextChildField(ancestor, successor);
 
         // retrieve the address of the children fields of the parent node
-        Node addressOfChildField = getAddressOfNextChildField(parent, terminal);
-        Node addressOfSiblingField = getAddressOfSiblingChildField(parent, terminal);
+        AtomicStampedReference<Node> addressOfChildField = getAddressOfNextChildField(parent, terminal);
+        AtomicStampedReference<Node> addressOfSiblingField = getAddressOfSiblingChildField(parent, terminal);
 
         // create the stamp
         int[] stamp = new int[1];
 
-        // if not flag then the leaf node is not flagged for deletion
-        if (stamp[0] == 1 || stamp[0] == 1) {
-            // The leaf node is not flagged for deletion, thus the siblign node must be
-            // flagged for deletion
-            // switch the sibling address
-            addressOfSiblingField = addressOfChildField;
+        Node address = addressOfChildField.get(stamp);
 
+        // if not flag then the leaf node is not flagged for deletion
+        if (stamp[0] == 1 || stamp[0] == 0) 
+        {
+            addressOfSiblingField = addressOfChildField;
         }
         // end of if
 
@@ -288,29 +282,35 @@ public class ConcurrentBST {
          */
 
         // if not tagged then CAS instruction
-        if (stamp[0] == 10 || stamp[0] != 0) {
-
+        if (stamp[0] == 10 || stamp[0] == 0) 
+        {
+            boolean temp = false;
             // speficic CAS instruction goes here
             // repeatedly readthe contents stored in the right field of the parent and then
             // attempt to set the tag bit in right field of parent to 1.
-
+            if (stamp[0] == 10)
+                temp = addressOfSiblingField.attemptStamp(addressOfSiblingField.getReference(), 11);
+            else if (stamp[0] == 0)
+                temp = addressOfSiblingField.attemptStamp(addressOfSiblingField.getReference(),1);
         }
 
+        int[] stamp2 = new int[1];
         // get the address of the sibling field
-        //Node address = addressOfSiblingField.get(stamp);
+        Node address2 = addressOfSiblingField.get(stamp2);
 
-        // the flag field will be copied to the new edge that will be created
-        // prune step: make the sibling node a direct child of the ancestor node
-        // boolean result = addressOfSuccessorField.compareAndSet(succesor, parent, 0,
-        // 1);
+        // set mark to flag & untagged = 10
+        boolean result = addressOfSuccessorField.compareAndSet(successor, address2, 0, 10);
 
-        // dummy hold until prune is complete
+        /*
         boolean done = true;
         if (done == true) {
             return true;
         }
 
         return false;
+        */
+
+        return result;
     }
 
     public static void main(String[] args) {
