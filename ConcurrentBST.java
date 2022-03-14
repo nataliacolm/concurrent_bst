@@ -6,8 +6,7 @@ import org.w3c.dom.Node;
 
 // For testing purposes, key is of type int.
 
-class Node
-{
+class Node {
     // Stamp:
     // 0 = unflagged & untagged
     // 10 = flagged & untagged
@@ -18,26 +17,22 @@ class Node
     AtomicStampedReference<Node> left = new AtomicStampedReference<>(null, 0);
     AtomicStampedReference<Node> right = new AtomicStampedReference<>(null, 0);
 
-    Node (int key)
-    {
+    Node(int key) {
         this.key = key;
     }
 
-    public int getKey()
-    {
+    public int getKey() {
         return this.key;
     }
 }
 
-class SeekRecord
-{
+class SeekRecord {
     public Node ancestor;
     public Node succesor;
     public Node parent;
     public Node terminal;
 
-    SeekRecord (Node ancestor, Node succesor, Node parent, Node terminal)
-    {
+    SeekRecord(Node ancestor, Node succesor, Node parent, Node terminal) {
         this.ancestor = ancestor;
         this.succesor = succesor;
         this.parent = parent;
@@ -45,66 +40,49 @@ class SeekRecord
     }
 }
 
-public class ConcurrentBST
-{
+public class ConcurrentBST {
     public Node root;
     public SeekRecord seekRecord;
     private final int INJECTION = 1;
     private final int CLEANUP = 0;
 
-    public AtomicStampedReference<Node> getNextChildField(int key, Node current)
-    {
-        if (current.getKey() > key)
-        {
+    public AtomicStampedReference<Node> getNextChildField(int key, Node current) {
+        if (current.getKey() > key) {
             return current.left;
-        }
-        else
-        {
+        } else {
             return current.right;
         }
     }
 
     // Watch out: overloaded method
-    public Node getAddressOfNextChildField(int key, Node child)
-    {
-        if (child.getKey() > key)
-        {
+    public Node getAddressOfNextChildField(int key, Node child) {
+        if (child.getKey() > key) {
             return child.left.getReference();
-        }
-        else
-        {
+        } else {
             return child.right.getReference();
         }
     }
 
     // Watch out: overloaded method.
-    public Node getAddressOfNextChildField(Node node, Node child)
-    {
-        if (child.getKey() < node.getKey())
-        {
+    public Node getAddressOfNextChildField(Node node, Node child) {
+        if (child.getKey() < node.getKey()) {
             return node.left.getReference();
-        }
-        else
-        {
+        } else {
             return node.right.getReference();
         }
     }
 
-    //Return address of child field that contains address of the sibling of the next node on the access path
-    public Node getAddressOfSiblingChildField(Node node, Node child)
-    {
-        if (child.getKey() < node.getKey())
-        {
+    // Return address of child field that contains address of the sibling of the
+    // next node on the access path
+    public Node getAddressOfSiblingChildField(Node node, Node child) {
+        if (child.getKey() < node.getKey()) {
             return node.right.getReference();
-        }
-        else
-        {
+        } else {
             return node.left.getReference();
         }
     }
 
-    public void seek(int key)
-    {
+    public void seek(int key) {
         Node ancestor = root;
         Node succesor = root.left.getReference();
         Node parent = root.left.getReference();
@@ -114,10 +92,8 @@ public class ConcurrentBST
         AtomicStampedReference<Node> childFieldAtCurrent = current.left;
         Node next = childFieldAtParent.getReference();
 
-        while (next != null)
-        {
-            if (childFieldAtParent.getStamp() == 00 || childFieldAtParent.getStamp() == 10)
-            {
+        while (next != null) {
+            if (childFieldAtParent.getStamp() == 00 || childFieldAtParent.getStamp() == 10) {
                 ancestor = parent;
                 succesor = current;
             }
@@ -128,12 +104,9 @@ public class ConcurrentBST
             childFieldAtParent = childFieldAtCurrent;
             childFieldAtCurrent = getNextChildField(key, current);
 
-            if (childFieldAtCurrent == null)
-            {
+            if (childFieldAtCurrent == null) {
                 next = null;
-            }
-            else
-            {
+            } else {
                 next = childFieldAtCurrent.getReference();
             }
         }
@@ -145,40 +118,34 @@ public class ConcurrentBST
         return;
     }
 
-    public boolean delete(int key)
-    {
+    public boolean delete(int key) {
         // Injection mode: mark the leaf node that contains the given key
         // by flagging its incoming edge
         // Cleanup mode: remove leaf node that was flagges during injection.
 
-       int mode = INJECTION;
-       while (true)
-       {
-           seek(key); // updates seekRecord
-           Node parent = this.seekRecord.parent;
-           Node terminal = null;
-
+        int mode = INJECTION;
+        while (true) {
+            seek(key); // updates seekRecord
+            Node parent = this.seekRecord.parent;
+            Node terminal = null;
 
             // Test section
             AtomicStampedReference<Node> addressOfChildField = getNextChildField(key, parent);
-           // End of test section
-           // address of child field
+            // End of test section
+            // address of child field
 
-           if (mode == INJECTION)
-           {
-               terminal = this.seekRecord.terminal;
-               if (terminal.getKey() != key)
-               {
+            if (mode == INJECTION) {
+                terminal = this.seekRecord.terminal;
+                if (terminal.getKey() != key) {
                     // no key found.
                     return false;
-               }
+                }
 
                 // determine where result should stand
                 boolean result = addressOfChildField.compareAndSet(terminal, terminal, 0, 10);
 
                 // CAS instruction succeeds.
-                if (result)
-                {
+                if (result) {
                     mode = CLEANUP;
                     // TODO
                     // done = Cleanup();
@@ -190,14 +157,12 @@ public class ConcurrentBST
                 }
 
                 // CAS instruction fails.
-                else
-                {
-                    int [] stamp = new int [1];
+                else {
+                    int[] stamp = new int[1];
                     // flag
                     Node address = addressOfChildField.get(stamp);
                     // All possible flag or tags
-                    if (address == terminal && (stamp[0] == 10 || stamp[0] == 1 || stamp[0] == 11))
-                    {
+                    if (address == terminal && (stamp[0] == 10 || stamp[0] == 1 || stamp[0] == 11)) {
                         // TODO
                         // Cleanup();
                     }
@@ -205,47 +170,43 @@ public class ConcurrentBST
 
             }
 
-            else
-            {
-                if (seekRecord.terminal != terminal)
-                {
+            else {
+                if (seekRecord.terminal != terminal) {
                     return true;
                 }
 
-                else
-                {
+                else {
                     // TODO
                     // done = cleanup();
 
                     // dummy hold until cleanup is complete.
                     boolean done = true;
-                    if (done)
-                    {
+                    if (done) {
                         return true;
                     }
                 }
             }
-       }
+        }
     }
-    public boolean insert(int key){
-        while(true){
+
+    public boolean insert(int key) {
+        while (true) {
             seek(key);
-            if (seekRecord.terminal.key != key){
+            if (seekRecord.terminal.key != key) {
                 Node parent = this.seekRecord.parent;
                 Node terminal = this.seekRecord.parent;
-                
-                Node addressOfChildField = getAddressOfNextChildField(key,parent);
-                
+
+                Node addressOfChildField = getAddressOfNextChildField(key, parent);
+
                 // create two nodes newInternal and newLeaf and initialize them appropriately
                 Node newInternal = new Node(key);
-                
+
                 boolean result = addressOfChildField.compareAndSet(terminal, newInternal, 0, 0);
-                
-                if (result){
-                    return true;   
-                }
-                else {
-                    int [] stamp = new int [1];
+
+                if (result) {
+                    return true;
+                } else {
+                    int[] stamp = new int[1];
                     // flag
                     Node address = addressOfChildField.get(stamp);
                     if (address == terminal && (stamp[0] == 10 || stamp[0] == 1 || stamp[0] == 11)) {
@@ -253,72 +214,91 @@ public class ConcurrentBST
                         // Cleanup();
                     }
                 }
-            }
-            else {
-                return false;   
+            } else {
+                return false;
             }
         }
-    
-    }
-    // Removes a leaf node, which is currently under deletion, and its parent from the tree
-    public boolean cleanup(int key){
 
-        //retrieve all addresses in the seekRecord for easy access
+    }
+
+    // Removes a leaf node, which is currently under deletion, and its parent from
+    // the tree
+    public boolean cleanup(int key) {
+
+        // retrieve all addresses in the seekRecord for easy access
         Node ancestor = seekRecord.ancestor;
         Node succesor = seekRecord.succesor;
         Node parent = seekRecord.parent;
         Node terminal = seekRecord.terminal;
 
         // obtain the addresses on which atomic instructions will be executed
-        //first obtain the address of the field of the ancestor node that will be modified
+        // first obtain the address of the field of the ancestor node that will be
+        // modified
         Node addressOfSuccessorField = getAddressOfNextChildField(ancestor, succesor);
 
-        //retrieve the address of the children fields of the parent node
+        // retrieve the address of the children fields of the parent node
         Node addressOfChildField = getAddressOfNextChildField(parent, terminal);
         Node addressOfSiblingField = getAddressOfSiblingChildField(parent, terminal);
 
-        //create the stamp
-        int [] stamp = new int [1];
-                
+        // create the stamp
+        int[] stamp = new int[1];
+
         // if not flag then the leaf node is not flagged for deletion
-        if (stamp[0] == 1 || stamp[0] ==1 )
-        {
-            //The leaf node is not flagged for deletion, thus the siblign node must be flagged for deletion
-            //switch the sibling address
+        if (stamp[0] == 1 || stamp[0] == 1) {
+            // The leaf node is not flagged for deletion, thus the siblign node must be
+            // flagged for deletion
+            // switch the sibling address
             addressOfSiblingField = addressOfChildField;
 
         }
-        //end of if
-        
-        /* 
-        TODO THIS WEEK
+        // end of if
 
-        //Freeze step: tag the sibling edge if not already tagged
-        //no modify operation can occur at this edge now
-        
-        //Create if not Tag statement 
-        if not tag then
-            BTS(addressofSiblingField, tag)
-        //end of if
+        /*
+         * Problem*
+         * The next step is the Freeze step which you tag the sibling edge if its not
+         * already tagged
+         * there cannot be any modifying operation at this point on the edge
+         * 
+         * In here if the stamps are untagged then we do a Bit test and set instruction.
+         * Instead of doing this BTS we can simulate it doing a CAS instruction.
+         * 
+         * after this we get the result which before we will need to get the address of
+         * the sibling field and the flag
+         * I did a new helper function to get the address of the sibling field which is
+         * described in the document
+         * but when attempting to get the address with this helper function with the
+         * stamp, is not possible since the helper function is not in
+         * AtomicStampedReference
+         * Cant wrap my head around this
+         * refer to page 14 for more information on this part.
+         */
 
-        //read the flag and address fields
-        flag = addressOfSiblingField.get(stamp);
-        */
+        // if not tagged then CAS instruction
+        if (stamp[0] == 10 || stamp[0] != 0) {
 
-        //the flag field will be copied to the new edge that will be created
-        //prune step: make the sibling node a direct child of the ancestor node
-        //boolean result = addressOfSuccessorField.compareAndSet(succesor, parent, 0, 1);
+            // speficic CAS instruction goes here
+            // repeatedly readthe contents stored in the right field of the parent and then
+            // attempt to set the tag bit in right field of parent to 1.
 
-        //dummy hold until prune is complete
+        }
+
+        // get the address of the sibling field
+        Node address = addressOfSiblingField.get(stamp);
+
+        // the flag field will be copied to the new edge that will be created
+        // prune step: make the sibling node a direct child of the ancestor node
+        // boolean result = addressOfSuccessorField.compareAndSet(succesor, parent, 0,
+        // 1);
+
+        // dummy hold until prune is complete
         boolean done = true;
-        if (done ==true){
+        if (done == true) {
             return true;
         }
 
-     }
+    }
 
-    public static void main (String [] args)
-    {
+    public static void main(String[] args) {
         // Set initialize the Seek Record
         ConcurrentBST bst = new ConcurrentBST();
         bst.root = new Node(100);
@@ -347,7 +327,6 @@ public class ConcurrentBST
         bst.seekRecord = new SeekRecord(bst.root, temp1, temp1, temp4);
 
         bst.seek(65);
-
 
         System.out.println(bst.seekRecord.terminal.getKey());
 
