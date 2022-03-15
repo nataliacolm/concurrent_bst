@@ -114,7 +114,7 @@ public class ConcurrentBST
 
         AtomicStampedReference<Node> childFieldAtParent = parent.left;
         AtomicStampedReference<Node> childFieldAtCurrent = current.left;
-        Node next = childFieldAtParent.getReference();
+        Node next = childFieldAtCurrent.getReference();
 
         while (next != null)
         {
@@ -130,7 +130,7 @@ public class ConcurrentBST
             childFieldAtParent = childFieldAtCurrent;
             childFieldAtCurrent = getNextChildField(key, current);
 
-            if (childFieldAtCurrent == null)
+            if (childFieldAtCurrent.getReference() == null)
             {
                 next = null;
             }
@@ -254,13 +254,12 @@ public class ConcurrentBST
 
                 else
                 {
-                    newInternal.left = new AtomicStampedReference<Node>(newLeaf, 0);
                     newInternal.right = new AtomicStampedReference<Node>(terminal, 0);
+                    newInternal.left = new AtomicStampedReference<Node>(newLeaf, 0);
                 }
 
                 // initialize to false
-                // boolean result = addressOfChildField.compareAndSet(terminal, newInternal, 0, 0);
-                boolean result = compareAndSet(terminal, newInternal, 0, 0);
+                boolean result = addressOfChildField.compareAndSet(terminal, newInternal, 0, 0);
 
                 if (result)
                 {
@@ -363,11 +362,40 @@ public class ConcurrentBST
         System.out.println(bst.root.left.getReference().getKey());
         System.out.println(bst.root.left.getReference().left.getReference().getKey());
 
+        System.out.println("_____ Insert 70 _____");
+
         boolean didItInsert = bst.insert(70);
 
         System.out.println(didItInsert);
-        System.out.println(bst.root.left.getReference().left.getReference().left.getReference().getKey());
-        System.out.println(bst.root.left.getReference().left.getReference().right.getReference().getKey());
+        System.out.println(bst.root.left.getReference().left.getReference().left.getReference().getKey() + " On the Left");
+        System.out.println(bst.root.left.getReference().left.getReference().right.getReference().getKey() + " On the Right");
+
+        System.out.println("_____ Insert 60 _____");
+
+        boolean didItInsert2 = bst.insert(60);
+
+        System.out.println(didItInsert2);
+        System.out.println(bst.root.left.getReference().left.getReference().left.getReference().left.getReference().getKey() + " On the Left");
+        System.out.println(bst.root.left.getReference().left.getReference().left.getReference().right.getReference().getKey() + " On the Right");
+
+        System.out.println("_____ Insert 75 _____");
+
+        boolean didItInsert3 = bst.insert(75);
+
+        System.out.println(didItInsert3);
+        System.out.println(bst.root.left.getReference().left.getReference().left.getReference().right.getReference().getKey() + " On Main");
+        System.out.println(bst.root.left.getReference().left.getReference().left.getReference().right.getReference().left.getReference().getKey() + " On the Left");
+        System.out.println(bst.root.left.getReference().left.getReference().left.getReference().right.getReference().right.getReference().getKey() + " On the Right");
+
+
+        System.out.println("_____ Delete 60 _____");
+
+        boolean didItDelete4 = bst.delete(60);
+
+        System.out.println(didItDelete);
+        System.out.println(bst.root.left.getReference().left.getReference().left.getReference().getKey() + " On Main");
+        System.out.println(bst.root.left.getReference().left.getReference().left.getReference().left.getReference().getKey() + " On the Left");
+        System.out.println(bst.root.left.getReference().left.getReference().left.getReference().right.getReference().getKey() + " On the Right");
 
     }
 }
