@@ -6,7 +6,8 @@ import java.util.concurrent.atomic.AtomicStampedReference;
 
 // For testing purposes, key is of type int.
 
-class Node {
+class Node 
+{
     // Stamp:
     // 0 = unflagged & untagged
     // 10 = flagged & untagged
@@ -17,22 +18,26 @@ class Node {
     AtomicStampedReference<Node> left = new AtomicStampedReference<>(null, 0);
     AtomicStampedReference<Node> right = new AtomicStampedReference<>(null, 0);
 
-    Node(int key) {
+    Node(int key) 
+    {
         this.key = key;
     }
 
-    public int getKey() {
+    public int getKey() 
+    {
         return this.key;
     }
 }
 
-class SeekRecord {
+class SeekRecord 
+{
     public Node ancestor;
     public Node successor;
     public Node parent;
     public Node terminal;
 
-    SeekRecord(Node ancestor, Node successor, Node parent, Node terminal) {
+    SeekRecord(Node ancestor, Node successor, Node parent, Node terminal) 
+    {
         this.ancestor = ancestor;
         this.successor = successor;
         this.parent = parent;
@@ -40,48 +45,68 @@ class SeekRecord {
     }
 }
 
-public class ConcurrentBST {
+public class ConcurrentBST 
+{
     public Node root;
     private final int INJECTION = 1;
     private final int CLEANUP = 0;
 
-    public AtomicStampedReference<Node> getNextChildField(int key, Node current) {
-        if (current.getKey() > key) {
+    public AtomicStampedReference<Node> getNextChildField(int key, Node current) 
+    {
+        if (current.getKey() > key) 
+        {
             return current.left;
-        } else {
+        } 
+
+        else 
+        {
             return current.right;
         }
     }
 
     // Watch out: overloaded method
-    public Node getAddressOfNextChildField(int key, Node child) {
-        if (child.getKey() > key) {
+    public Node getAddressOfNextChildField(int key, Node child) 
+    {
+        if (child.getKey() > key) 
+        {
             return child.left.getReference();
-        } else {
+        } 
+
+        else 
+        {
             return child.right.getReference();
         }
     }
 
     // Watch out: overloaded method.
-    public AtomicStampedReference<Node> getAddressOfNextChildField(Node node, Node child) {
-        if (child.getKey() < node.getKey()) {
+    public AtomicStampedReference<Node> getAddressOfNextChildField(Node node, Node child) 
+    {
+        if (child.getKey() < node.getKey()) 
+        {
             return node.left;
-        } else {
+        } 
+        else 
+        {
             return node.right;
         }
     }
 
     // Return address of child field that contains address of the sibling of the
     // next node on the access path
-    public AtomicStampedReference<Node> getAddressOfSiblingChildField(Node node, Node child) {
-        if (child.getKey() < node.getKey()) {
+    public AtomicStampedReference<Node> getAddressOfSiblingChildField(Node node, Node child) 
+    {
+        if (child.getKey() < node.getKey()) 
+        {
             return node.right;
-        } else {
+        } 
+        else 
+        {
             return node.left;
         }
     }
 
-    public SeekRecord seek(int key) {
+    public SeekRecord seek(int key) 
+    {
         Node ancestor = root;
         Node successor = root.left.getReference();
         Node parent = root.left.getReference();
@@ -91,8 +116,10 @@ public class ConcurrentBST {
         AtomicStampedReference<Node> childFieldAtCurrent = current.left;
         Node next = childFieldAtParent.getReference();
 
-        while (next != null) {
-            if (childFieldAtParent.getStamp() == 00 || childFieldAtParent.getStamp() == 10) {
+        while (next != null) 
+        {
+            if (childFieldAtParent.getStamp() == 00 || childFieldAtParent.getStamp() == 10) 
+            {
                 ancestor = parent;
                 successor = current;
             }
@@ -103,9 +130,12 @@ public class ConcurrentBST {
             childFieldAtParent = childFieldAtCurrent;
             childFieldAtCurrent = getNextChildField(key, current);
 
-            if (childFieldAtCurrent == null) {
+            if (childFieldAtCurrent == null) 
+            {
                 next = null;
-            } else {
+            } 
+
+            else {
                 next = childFieldAtCurrent.getReference();
             }
         }
@@ -113,7 +143,8 @@ public class ConcurrentBST {
         return new SeekRecord(ancestor, successor, parent, current);
     }
 
-    public boolean delete(int key) {
+    public boolean delete(int key) 
+    {
         // Injection mode: mark the leaf node that contains the given key
         // by flagging its incoming edge
         // Cleanup mode: remove leaf node that was flagges during injection.
@@ -161,7 +192,8 @@ public class ConcurrentBST {
                     // flag
                     Node address = addressOfChildField.get(stamp);
                     // All possible flag or tags
-                    if (address == terminal && (stamp[0] == 10 || stamp[0] == 1 || stamp[0] == 11)) {
+                    if (address == terminal && (stamp[0] == 10 || stamp[0] == 1 || stamp[0] == 11)) 
+                    {
                         // TODO
                         boolean temp = cleanup(seekRecord);
                     }
@@ -198,10 +230,13 @@ public class ConcurrentBST {
         return false;
     }
 
-    public boolean insert(int key) {
-        while (true) {
+    public boolean insert(int key) 
+    {
+        while (true) 
+        {
             SeekRecord seekRecord = seek(key);
-            if (seekRecord.terminal.getKey() != key) {
+            if (seekRecord.terminal.getKey() != key) 
+            {
                 Node parent = seekRecord.parent;
                 Node terminal = seekRecord.terminal;
 
@@ -232,6 +267,7 @@ public class ConcurrentBST {
                 {
                     return true;
                 } 
+
                 else 
                 {
                     AtomicStampedReference<Node> child = getNextChildField(key, parent);
@@ -254,7 +290,8 @@ public class ConcurrentBST {
 
     // Removes a leaf node, which is currently under deletion, and its parent from
     // the tree
-    public boolean cleanup(SeekRecord seekRecord) {
+    public boolean cleanup(SeekRecord seekRecord) 
+    {
         // retrieve all addresses in the seekRecord for easy access
         Node ancestor = seekRecord.ancestor;
         Node successor = seekRecord.successor;
@@ -303,7 +340,8 @@ public class ConcurrentBST {
         return result;
     }
 
-    public static void main(String[] args) {
+    public static void main(String[] args) 
+    {
         // Set initialize the Seek Record
         ConcurrentBST bst = new ConcurrentBST();
         bst.root = new Node(100);
