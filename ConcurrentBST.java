@@ -119,7 +119,8 @@ public class ConcurrentBST {
         // Cleanup mode: remove leaf node that was flagges during injection.
 
         int mode = INJECTION;
-        while (true) {
+        while (true) 
+        {
             SeekRecord seekRecord = seek(key); // updates seekRecord
             Node parent = seekRecord.parent;
             Node terminal = null;
@@ -129,9 +130,11 @@ public class ConcurrentBST {
             // End of test section
             // address of child field
 
-            if (mode == INJECTION) {
+            if (mode == INJECTION) 
+            {
                 terminal = seekRecord.terminal;
-                if (terminal.getKey() != key) {
+                if (terminal.getKey() != key) 
+                {
                     // no key found.
                     return false;
                 }
@@ -140,7 +143,8 @@ public class ConcurrentBST {
                 boolean result = addressOfChildField.compareAndSet(terminal, terminal, 0, 10);
 
                 // CAS instruction succeeds.
-                if (result) {
+                if (result) 
+                {
                     mode = CLEANUP;
                     // TODO
                     boolean done = cleanup(seekRecord);
@@ -151,7 +155,8 @@ public class ConcurrentBST {
                 }
 
                 // CAS instruction fails.
-                else {
+                else 
+                {
                     int[] stamp = new int[1];
                     // flag
                     Node address = addressOfChildField.get(stamp);
@@ -164,22 +169,33 @@ public class ConcurrentBST {
 
             }
 
-            else {
-                if (seekRecord.terminal != terminal) {
+            else 
+            {
+                if (seekRecord.terminal != terminal) 
+                {
                     return true;
                 }
 
-                else {
-                    // TODO
+                else 
+                {
                     boolean done = cleanup(seekRecord);
 
                     // dummy hold until cleanup is complete.
-                    if (done) {
+                    if (done) 
+                    {
                         return true;
                     }
                 }
             }
         }
+    }
+
+    public boolean search(int key)
+    {
+        SeekRecord seekRecord = seek(key);
+        if (seekRecord.terminal.getKey() == key)
+            return true;
+        return false;
     }
 
     public boolean insert(int key) {
@@ -212,19 +228,24 @@ public class ConcurrentBST {
                     }
                 }
                 
-                if (result) {
+                if (result) 
+                {
                     return true;
-                } else {
+                } 
+                else 
+                {
                     AtomicStampedReference<Node> child = getNextChildField(key, parent);
                     int stamp = child.getStamp();
                     // flag
                     Node address = child.getReference();
-                    if (address == terminal && (stamp == 10 || stamp == 1 || stamp == 11)) {
-                        // TODO
-                        // Cleanup();
+                    if (address == terminal && (stamp == 10 || stamp == 1 || stamp == 11)) 
+                    {
+                        boolean temp = cleanup(seekRecord);
                     }
                 }
-            } else {
+            } 
+            else 
+            {
                 return false;
             }
         }
