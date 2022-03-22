@@ -307,6 +307,7 @@ public class ConcurrentBST
 
         // create the stamp
         int[] stamp = new int[1];
+        stamp[0] = addressOfChildField.getStamp();
 
         // if not flag then the leaf node is not flagged for deletion
         if (stamp[0] == 1 || stamp[0] == 0)
@@ -330,9 +331,13 @@ public class ConcurrentBST
 
         int[] stamp2 = new int[1];
         // get the address of the sibling field
-        Node address2 = addressOfSiblingField.get(stamp2);
+        Node address2 = addressOfSiblingField.getReference();
 
         // set mark to flag & untagged = 10
+        //boolean result = addressOfSuccessorField.compareAndSet(successor, address2, 0, 10);
+
+        //boolean result = addressOfChildField.compareAndSet(terminal, newInternal, 0, 0);
+
         boolean result = addressOfSuccessorField.compareAndSet(successor, address2, 0, 10);
 
         return result;
@@ -348,10 +353,15 @@ public class ConcurrentBST
         Node temp3 = new Node(95);
         Node temp4 = new Node(85);
 
-            // 100
-        // 90      110
-    // 85     95
-  // 70  85
+              // 100
+          // 90      110
+      // 85     95
+    //70    85
+  //60  75
+      //70  75
+
+        // 75
+    //70       75
 
 
         bst.root.left = new AtomicStampedReference<>(temp1, 0);
@@ -387,15 +397,47 @@ public class ConcurrentBST
         System.out.println(bst.root.left.getReference().left.getReference().left.getReference().right.getReference().left.getReference().getKey() + " On the Left");
         System.out.println(bst.root.left.getReference().left.getReference().left.getReference().right.getReference().right.getReference().getKey() + " On the Right");
 
+                      // 100
+                  // 90      110
+              // 85     95
+            //70    85
+          //60  75
+            //70  75
 
-        System.out.println("_____ Delete 60 _____");
 
-        boolean didItDelete4 = bst.delete(60);
+                      // 100
+                  // 90      110
+              // 85     95
+            //75    85
+          //70  75
 
-        System.out.println(didItDelete);
-        System.out.println(bst.root.left.getReference().left.getReference().left.getReference().getKey() + " On Main");
-        System.out.println(bst.root.left.getReference().left.getReference().left.getReference().left.getReference().getKey() + " On the Left");
-        System.out.println(bst.root.left.getReference().left.getReference().left.getReference().right.getReference().getKey() + " On the Right");
+          System.out.println("=====================================");
+
+          boolean work = bst.delete(75);
+
+          if (work == false)
+          {
+              System.out.println("Failed");
+          }
+
+          if (!bst.search(75))
+          {
+              System.out.println("True for 75");
+          }
+
+          System.out.println("=====================================");
+
+          work = bst.delete(60);
+
+          if (work == false)
+          {
+              System.out.println("Failed");
+          }
+
+          if (!bst.search(60))
+          {
+              System.out.println("True for 60");
+          }
 
     }
 }
