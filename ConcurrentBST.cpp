@@ -101,6 +101,25 @@ bool search(Node* root, int key)
     return false;
 }
 
+bool insert(Node* root, int key)
+{
+    while (true)
+    {
+        SeekRecord* seekRecord = seek(root, key);
+        if ((GET_ADDR(seekRecord->terminal)->key) != key)
+        {
+            Node* parent = GET_ADDR(seekRecord->parent);
+            Node* terminal = GET_ADDR(seekRecord->terminal);
+          
+            Node** addressOfChildField = getNextChildField_ptr(key,parent);
+            
+            Node* newInternal = new Node(Math.max(terminal->key, key);
+            Node* newLeaf = new Node(key);
+            
+                                         
+        }
+    }
+}
 
 int main()
 {
