@@ -77,8 +77,6 @@ SeekRecord* seek(Node* root, int key)
 
     Node* next = GET_ADDR(childFieldAtCurrent);
 
-    bool result = __sync_bool_compare_and_swap(addressOfChildField, GET_ADDR(terminal), FLAGGED(UNFLAGGED(terminal)));
-    
     while (next != nullptr)
     {
         if (!GET_TAG(childFieldAtParent))
@@ -133,7 +131,7 @@ bool remove(Node* root, int key)
                 return false;
         
 
-            bool result = __sync_bool_compare_and_swap(addressOfChildField, GET_ADDR(terminal), FLAGGED(UNFLAGGED(terminal)));
+            bool result = __sync_bool_compare_and_swap(addressOfChildField, GET_ADDR(terminal), FLAGGED(UNTAGGED(terminal)));
 
             if (result)
             {
@@ -165,7 +163,6 @@ bool remove(Node* root, int key)
         }
     }
 }
-
 
 int main()
 {
