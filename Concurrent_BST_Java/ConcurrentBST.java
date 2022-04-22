@@ -196,6 +196,9 @@ public class ConcurrentBST
                     {
                         // TODO
                         boolean temp = cleanup(seekRecord);
+
+                        if (!temp)
+                          return false;
                     }
                 }
 

@@ -4,18 +4,18 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicStampedReference;
 
 
-class SearchThreads implements Runnable
+class DeleteAndAddThreads implements Runnable
 {
-    private ConcurrentBST bst;
+    private ConcurrentBSTModify bst;
     private Random rand;
     private boolean canRun;
     private int interation;
     private int id;
-    //private int maxInteration = 1000;
+    private int maxInteration = 1000;
     //private int maxInteration = 10000;
-    private int maxInteration = 100000;
+    //private int maxInteration = 100000;
 
-    SearchThreads(ConcurrentBST bst, int id)
+    DeleteAndAddThreads(ConcurrentBSTModify bst, int id)
     {
         this.bst = bst;
         this.id = id;
@@ -30,10 +30,21 @@ class SearchThreads implements Runnable
         while (canRun)
         {
             int value = rand.nextInt(90000);
-            boolean finished = bst.search(value);
-            //System.out.println(value + " " + id + " " + finished);
+            int job = rand.nextInt(2);
 
-            interation++;
+            if (value == 1)
+            {
+               boolean finished = bst.delete(value);
+               interation++;
+            }
+            else
+            {
+                boolean finished = bst.insert(value);
+                if (bst.search(value))
+                {
+                    interation++;
+                }
+            }
 
             if (interation == maxInteration)
             {
@@ -43,23 +54,12 @@ class SearchThreads implements Runnable
     }
 }
 
-public class TestSearchConcurrent
+public class TestDeleteAndAddConcurrent
 {
-    public static void buildTree(ConcurrentBST bst)
-    {
-        Random rand = new Random();
-        int interation = 100000;
-
-        for (int i = 0; i < interation; i++)
-        {
-            int value = rand.nextInt(90000);
-            boolean finished = bst.insert(value);
-        }
-    }
     public static void main(String agrs [])
     {
-        ConcurrentBST bst = new ConcurrentBST();
-        //long start = System.nanoTime();
+        ConcurrentBSTModify bst = new ConcurrentBSTModify();
+        long start = System.nanoTime();
 
         // Create the Initial Tree
         bst.root = new Node(100000);
@@ -73,14 +73,10 @@ public class TestSearchConcurrent
         temp1.left = new AtomicStampedReference<>(temp3, 0);
         temp1.right = new AtomicStampedReference<>(temp4, 0);
 
-        buildTree(bst);
-
-        long start = System.nanoTime();
-
-        SearchThreads test1 = new SearchThreads(bst, 1);
-        SearchThreads test2 = new SearchThreads(bst, 2);
-        SearchThreads test3 = new SearchThreads(bst, 3);
-        SearchThreads test4 = new SearchThreads(bst, 4);
+        DeleteAndAddThreads test1 = new DeleteAndAddThreads(bst, 1);
+        DeleteAndAddThreads test2 = new DeleteAndAddThreads(bst, 2);
+        DeleteAndAddThreads test3 = new DeleteAndAddThreads(bst, 3);
+        DeleteAndAddThreads test4 = new DeleteAndAddThreads(bst, 4);
 
         Thread thread1 = new Thread(test1);
         Thread thread2 = new Thread(test2);

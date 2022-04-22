@@ -6,7 +6,7 @@ import java.util.concurrent.atomic.AtomicStampedReference;
 
 class SearchThreads implements Runnable
 {
-    private ConcurrentBST bst;
+    private ConcurrentBSTModify bst;
     private Random rand;
     private boolean canRun;
     private int interation;
@@ -15,7 +15,7 @@ class SearchThreads implements Runnable
     //private int maxInteration = 10000;
     private int maxInteration = 100000;
 
-    SearchThreads(ConcurrentBST bst, int id)
+    SearchThreads(ConcurrentBSTModify bst, int id)
     {
         this.bst = bst;
         this.id = id;
@@ -45,7 +45,7 @@ class SearchThreads implements Runnable
 
 public class TestSearchConcurrent
 {
-    public static void buildTree(ConcurrentBST bst)
+    public static void buildTree(ConcurrentBSTModify bst)
     {
         Random rand = new Random();
         int interation = 100000;
@@ -58,7 +58,7 @@ public class TestSearchConcurrent
     }
     public static void main(String agrs [])
     {
-        ConcurrentBST bst = new ConcurrentBST();
+        ConcurrentBSTModify bst = new ConcurrentBSTModify();
         //long start = System.nanoTime();
 
         // Create the Initial Tree

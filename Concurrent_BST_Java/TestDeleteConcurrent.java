@@ -37,6 +37,7 @@ class DeleteThreads implements Runnable
 
             if (interation == maxInteration)
             {
+                System.out.println("Stuck!");
                 canRun = false;
             }
         }

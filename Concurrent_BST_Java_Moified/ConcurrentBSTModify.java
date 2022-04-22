@@ -63,14 +63,14 @@ class StackMethods
 
     public void push(Node node)
     {
-        Stack temp = head.next;
+        Stack temp = head;
         Stack add = new Stack(node);
 
         head = add;
         add.next = temp;
     }
 
-    public Stack pop()
+    public Node pop()
     {
         Stack temp = head;
         head = head.next;
@@ -78,12 +78,12 @@ class StackMethods
         return head.key;
     }
 
-    public Stack getHead()
+    public Node getHead()
     {
         return head.key;
     }
 
-    public Stack getSecondToTop()
+    public Node getSecondToTop()
     {
         return head.next.key;
     }
@@ -91,7 +91,7 @@ class StackMethods
     public void initializeTraversalStack(Node root)
     {
         head = new Stack(root);
-        push(root.left.getReference());
+        head.next = new Stack(root.left.getReference());
     }
 }
 
@@ -174,7 +174,7 @@ public class ConcurrentBSTModify
                    return new SeekRecord(stack.getSecondToTop(), parent, parent, current);
                 }
 
-                else if (childFieldAtCurrent.getStamp() == 0)
+                else if (childFieldAtCurrent.getStamp() == 00)
                 {
                     stack.push(current);
                 }
@@ -188,7 +188,7 @@ public class ConcurrentBSTModify
 
             else
             {
-                Node stack = stack.pop();
+                Node node = stack.pop();
             }
         } // End of While
     }
@@ -199,10 +199,13 @@ public class ConcurrentBSTModify
         // by flagging its incoming edge
         // Cleanup mode: remove leaf node that was flagges during injection.
 
+        StackMethods stack = new StackMethods();
+        stack.initializeTraversalStack(root);
+
         int mode = INJECTION;
         while (true)
         {
-            SeekRecord seekRecord = seek(key); // updates seekRecord
+            SeekRecord seekRecord = seek(key, stack); // updates seekRecord
             Node parent = seekRecord.parent;
             Node terminal = null;
 
@@ -246,6 +249,9 @@ public class ConcurrentBSTModify
                     {
                         // TODO
                         boolean temp = cleanup(seekRecord);
+
+                        if (!temp)
+                          return false;
                     }
                 }
 
@@ -274,7 +280,11 @@ public class ConcurrentBSTModify
 
     public boolean search(int key)
     {
-        SeekRecord seekRecord = seek(key);
+        StackMethods stack = new StackMethods();
+        stack.initializeTraversalStack(root);
+
+        SeekRecord seekRecord = seek(key,stack);
+
         if (seekRecord.terminal.getKey() == key)
             return true;
         return false;
@@ -282,9 +292,12 @@ public class ConcurrentBSTModify
 
     public boolean insert(int key)
     {
+        StackMethods stack = new StackMethods();
+        stack.initializeTraversalStack(root);
+
         while (true)
         {
-            SeekRecord seekRecord = seek(key);
+            SeekRecord seekRecord = seek(key, stack);
             if (seekRecord.terminal.getKey() != key)
             {
                 Node parent = seekRecord.parent;
@@ -396,12 +409,15 @@ public class ConcurrentBSTModify
     public static void main(String[] args)
     {
         // Set initialize the Seek Record
-        ConcurrentBST bst = new ConcurrentBST();
+        ConcurrentBSTModify bst = new ConcurrentBSTModify();
+        StackMethods stack = new StackMethods();
         bst.root = new Node(100);
         Node temp1 = new Node(90);
         Node temp2 = new Node(110);
         Node temp3 = new Node(95);
         Node temp4 = new Node(85);
+        Node temp5 = new Node(84);
+        Node temp6 = new Node(85);
 
               // 100
           // 90      110
@@ -417,6 +433,28 @@ public class ConcurrentBSTModify
         bst.root.right = new AtomicStampedReference<>(temp2, 0);
         temp1.left = new AtomicStampedReference<>(temp4, 0);
         temp1.right = new AtomicStampedReference<>(temp3, 0);
+        temp4.left = new AtomicStampedReference<>(temp5, 0);
+        temp4.right = new AtomicStampedReference<>(temp6, 0);
+
+        stack.initializeTraversalStack(bst.root);
+
+        SeekRecord record = bst.seek(85, stack);
+
+        System.out.println(record.terminal.getKey());
+
+        boolean didItWork = bst.insert(83);
+
+        System.out.println(didItWork);
+
+        System.out.println(bst.root.left.getReference().left.getReference().left.getReference().left.getReference().getKey());
+        System.out.println(bst.root.left.getReference().left.getReference().left.getReference().right.getReference().getKey());
+
+        boolean didItDelete = bst.delete(83);
+
+        if (bst.root.left.getReference().left.getReference().left.getReference().left.getReference() == null)
+        {
+            System.out.println("Its Null!");
+        }
 
     }
 }

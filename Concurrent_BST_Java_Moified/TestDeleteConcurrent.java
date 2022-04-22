@@ -4,18 +4,18 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicStampedReference;
 
 
-class SearchThreads implements Runnable
+class DeleteThreads implements Runnable
 {
-    private ConcurrentBST bst;
+    private ConcurrentBSTModify bst;
     private Random rand;
     private boolean canRun;
     private int interation;
     private int id;
-    //private int maxInteration = 1000;
+    private int maxInteration = 1000;
     //private int maxInteration = 10000;
-    private int maxInteration = 100000;
+    //private int maxInteration = 100000;
 
-    SearchThreads(ConcurrentBST bst, int id)
+    DeleteThreads(ConcurrentBSTModify bst, int id)
     {
         this.bst = bst;
         this.id = id;
@@ -29,23 +29,24 @@ class SearchThreads implements Runnable
     {
         while (canRun)
         {
-            int value = rand.nextInt(90000);
-            boolean finished = bst.search(value);
+            int value = rand.nextInt(90);
+            boolean finished = bst.delete(value);
             //System.out.println(value + " " + id + " " + finished);
 
             interation++;
 
             if (interation == maxInteration)
             {
+                System.out.println("Stuck!");
                 canRun = false;
             }
         }
     }
 }
 
-public class TestSearchConcurrent
+public class TestDeleteConcurrent
 {
-    public static void buildTree(ConcurrentBST bst)
+    public static void buildTree(ConcurrentBSTModify bst)
     {
         Random rand = new Random();
         int interation = 100000;
@@ -58,7 +59,7 @@ public class TestSearchConcurrent
     }
     public static void main(String agrs [])
     {
-        ConcurrentBST bst = new ConcurrentBST();
+        ConcurrentBSTModify bst = new ConcurrentBSTModify();
         //long start = System.nanoTime();
 
         // Create the Initial Tree
@@ -77,10 +78,10 @@ public class TestSearchConcurrent
 
         long start = System.nanoTime();
 
-        SearchThreads test1 = new SearchThreads(bst, 1);
-        SearchThreads test2 = new SearchThreads(bst, 2);
-        SearchThreads test3 = new SearchThreads(bst, 3);
-        SearchThreads test4 = new SearchThreads(bst, 4);
+        DeleteThreads test1 = new DeleteThreads(bst, 1);
+        DeleteThreads test2 = new DeleteThreads(bst, 2);
+        DeleteThreads test3 = new DeleteThreads(bst, 3);
+        DeleteThreads test4 = new DeleteThreads(bst, 4);
 
         Thread thread1 = new Thread(test1);
         Thread thread2 = new Thread(test2);
