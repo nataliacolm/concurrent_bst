@@ -112,6 +112,55 @@ bool search(Node* root, int key)
     return false;
 }
 
+bool insert(Node* root, int key)
+{
+    while (true)
+    {
+        SeekRecord* seekRecord = seek(root, key);
+        if ((GET_ADDR(seekRecord->terminal)->key) != key)
+        {
+            Node* parent = GET_ADDR(seekRecord->parent);
+            Node* terminal = GET_ADDR(seekRecord->terminal);
+          
+            Node** addressOfChildField = getNextChildField_ptr(key,parent);
+            
+            Node* newInternal = new Node(Math.max(terminal->key, key);
+            Node* newLeaf = new Node(key);
+            
+            if (key > GET_ADDR(terminal)->key)
+            {
+                newInternal->right = new Node(newLeaf, 0);
+                newInternal->left = new Node(terminal, 0);
+            }
+
+            else
+            {
+                newInternal->right = new Node(terminal, 0);
+                newInternal->left = new Node(newLeaf, 0);
+            }
+            
+            bool result = __sync_bool_compare_and_swap(addressOfChildField, GET_ADDR(terminal), UNFLAGGED(UNTAGGED(newInternal)));
+
+            if (result)
+            {
+                return true;
+            }
+            else
+            {
+                Node** child = getNextChildField_ptr(key,parent);
+                // flag
+                if (GET_ADDR(child) == GET_ADDR(terminal) && (GET_FLAG(child) || GET_TAG(child))
+                {
+                    bool temp = cleanup(seekRecord);
+                }
+            }
+        }
+        else
+        {
+            return false;
+        }
+    }
+}
 
 bool remove(Node* root, int key)
 {
