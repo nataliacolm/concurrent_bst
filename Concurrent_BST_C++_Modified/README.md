@@ -1,18 +1,17 @@
-# concurrent_bst
-FEAST implementation
 
-## To Run the Code in Command Line:
-* First type "javac ConcurrentBST.java"
-* Then type "java ConcurrentBST"
+## To Compile the Code in Command Line:
+Test Insert:
+* g++ -std=c++17 TestInsertConcurrent.cpp
+Test Delete:
+* g++ -std=c++17 TestDeleteConcurrent.cpp
+Test Search:
+* g++ -std=c++17 TestSearchConcurrent.cpp
+Test Insert & Delete:
+* g++ -std=c++17 TestInsertAndRemoveConcurrent.cpp
+Test Sequentially:
+* g++ -std=c++17 TestSequential.cpp
 
-## Current Testing Situation and Future Plans
-When you run our code it will perfrom a squential version of our concurrent bst, which we've fully tested and are currently testing how it performs concurrently.
+To run: ./a.out
 
-## To Run our Test Code in the Command Line:
-Test Add/Insert:
-* First type "javac TestAdd.java"
-* Then type "java TestAdd"
-
-Test Delete/Remove:
-* First type "javac TestDelete.java"
-* Then type "java TestDelete"
+## Current Testing Situation: 
+Constants MAX_ITERATION1, MAX_ITERATION2, MAX_ITERATION3 can be changed to other numbers that represent the number of iterations that will occur in the testing program. The variable should also be changed in the for loop in the run() function to detail which of the max iterations will be used.
