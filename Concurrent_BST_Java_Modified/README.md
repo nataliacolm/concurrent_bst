@@ -1,12 +1,12 @@
 # concurrent_bst
-FEAST implementation
+Modfied FEAST implementation
 
 ## To Run the Code in Command Line:
-* First type "javac ConcurrentBST.java"
-* Then type "java ConcurrentBST"
+* First type "javac ConcurrentBSTModify.java"
+* Then type "java ConcurrentBSTModify"
 
 ## Current Testing Situation and Future Plans
-When you run our code it will perfrom a squential version of our concurrent bst, which we've fully tested sequentially and concurrently.
+When running the concurrent test you can choose how mnay iterations each thread does by commenting and uncommenting one of the three iteration variables
 
 ## To Run our Test Code in the Command Line:
 Test Add/Insert:
