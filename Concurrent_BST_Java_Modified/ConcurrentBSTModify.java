@@ -75,7 +75,7 @@ class StackMethods
         Stack temp = head;
         head = head.next;
 
-        return head.key;
+        return temp.key;
     }
 
     public Node getHead()
@@ -181,14 +181,17 @@ public class ConcurrentBSTModify
 
                 else
                 {
-                    SeekRecord record = new SeekRecord(stack.getSecondToTop(), parent, parent, current);
+                    SeekRecord record = new SeekRecord(parent, current, current, childFieldAtCurrent.getReference());
                     boolean didItClean = cleanup(record);
                 }
             } // End of If
 
             else
             {
-                Node node = stack.pop();
+                if (stack.getHead().getKey() < 90000)
+                {
+                    Node node = stack.pop();
+                }
             }
         } // End of While
     }
@@ -236,23 +239,6 @@ public class ConcurrentBSTModify
 
                     if (done)
                         return true;
-                }
-
-                // CAS instruction fails.
-                else
-                {
-                    int[] stamp = new int[1];
-                    // flag
-                    Node address = addressOfChildField.get(stamp);
-                    // All possible flag or tags
-                    if (address == terminal && (stamp[0] == 10 || stamp[0] == 1 || stamp[0] == 11))
-                    {
-                        // TODO
-                        boolean temp = cleanup(seekRecord);
-
-                        if (!temp)
-                          return false;
-                    }
                 }
 
             }
@@ -308,6 +294,7 @@ public class ConcurrentBSTModify
                 // create two nodes newInternal and newLeaf and initialize them appropriately
                 Node newInternal = new Node(Math.max(terminal.getKey(), key));
                 Node newLeaf = new Node(key);
+                Node newSibling = new Node(terminal.getKey());
 
                 if (key > terminal.getKey())
                 {
@@ -327,18 +314,6 @@ public class ConcurrentBSTModify
                 if (result)
                 {
                     return true;
-                }
-
-                else
-                {
-                    AtomicStampedReference<Node> child = getNextChildField(key, parent);
-                    int stamp = child.getStamp();
-                    // flag
-                    Node address = child.getReference();
-                    if (address == terminal && (stamp == 10 || stamp == 1 || stamp == 11))
-                    {
-                        boolean temp = cleanup(seekRecord);
-                    }
                 }
             }
             else

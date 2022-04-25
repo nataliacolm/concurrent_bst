@@ -9,9 +9,9 @@
 using namespace std;
 using namespace std::chrono;
 
-#define MAX_ITERATION1 1000
-#define MAX_ITERATION2 10000
-#define MAX_ITERATION3 100000
+#define MAX_ITERATION1 4000
+#define MAX_ITERATION2 40000
+#define MAX_ITERATION3 400000
 
 atomic_int num_iterations;
 
@@ -43,7 +43,7 @@ int main()
     node->left->left = new Node();
     node->left->right->key = 95000;
     node->left->left->key = 90000;
-    
+
     // Edit number of threads here
     int num_threads = 4;
 

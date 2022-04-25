@@ -29,7 +29,7 @@ class DeleteThreads implements Runnable
     {
         while (canRun)
         {
-            int value = rand.nextInt(90);
+            int value = rand.nextInt(90000);
             boolean finished = bst.delete(value);
             //System.out.println(value + " " + id + " " + finished);
 
