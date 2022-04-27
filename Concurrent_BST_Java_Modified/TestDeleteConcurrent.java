@@ -11,9 +11,9 @@ class DeleteThreads implements Runnable
     private boolean canRun;
     private int interation;
     private int id;
-    private int maxInteration = 1000;
+    //private int maxInteration = 1000;
     //private int maxInteration = 10000;
-    //private int maxInteration = 100000;
+    private int maxInteration = 100000;
 
     DeleteThreads(ConcurrentBSTModify bst, int id)
     {
@@ -37,7 +37,6 @@ class DeleteThreads implements Runnable
 
             if (interation == maxInteration)
             {
-                System.out.println("Stuck!");
                 canRun = false;
             }
         }

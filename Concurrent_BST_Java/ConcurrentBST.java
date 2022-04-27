@@ -197,8 +197,8 @@ public class ConcurrentBST
                         // TODO
                         boolean temp = cleanup(seekRecord);
 
-                        if (!temp)
-                          return false;
+                        /*if (!temp)
+                          return false;*/
                     }
                 }
 
@@ -334,14 +334,16 @@ public class ConcurrentBST
 
         int[] stamp2 = new int[1];
         // get the address of the sibling field
-        Node address2 = addressOfSiblingField.getReference();
+        Node address2 = addressOfSiblingField.get(stamp2);
 
         // set mark to flag & untagged = 10
-        //boolean result = addressOfSuccessorField.compareAndSet(successor, address2, 0, 10);
 
-        //boolean result = addressOfChildField.compareAndSet(terminal, newInternal, 0, 0);
+        boolean result = addressOfSuccessorField.compareAndSet(successor, address2, 0, stamp2[0]);
 
-        boolean result = addressOfSuccessorField.compareAndSet(successor, address2, 0, 10);
+        /*if (result == false)
+        {
+            result = addressOfSuccessorField.compareAndSet(successor, address2, 0, 11);
+        }*/
 
         return result;
     }

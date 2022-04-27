@@ -11,9 +11,9 @@ class DeleteAndAddThreads implements Runnable
     private boolean canRun;
     private int interation;
     private int id;
-    private int maxInteration = 1000;
+    //private int maxInteration = 1000;
     //private int maxInteration = 10000;
-    //private int maxInteration = 100000;
+    private int maxInteration = 100000;
 
     DeleteAndAddThreads(ConcurrentBST bst, int id)
     {
@@ -32,7 +32,7 @@ class DeleteAndAddThreads implements Runnable
             int value = rand.nextInt(90000);
             int job = rand.nextInt(2);
 
-            if (value == 1)
+            if (job == 0)
             {
                boolean finished = bst.delete(value);
                interation++;

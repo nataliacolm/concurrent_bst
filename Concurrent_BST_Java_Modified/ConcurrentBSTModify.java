@@ -372,11 +372,9 @@ public class ConcurrentBSTModify
         Node address2 = addressOfSiblingField.getReference();
 
         // set mark to flag & untagged = 10
+
         //boolean result = addressOfSuccessorField.compareAndSet(successor, address2, 0, 10);
-
-        //boolean result = addressOfChildField.compareAndSet(terminal, newInternal, 0, 0);
-
-        boolean result = addressOfSuccessorField.compareAndSet(successor, address2, 0, 10);
+        boolean result = addressOfSuccessorField.compareAndSet(successor, address2, 0, stamp2[0]);
 
         return result;
     }
