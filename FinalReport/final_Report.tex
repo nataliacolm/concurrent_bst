@@ -116,7 +116,7 @@ When implementing the stack, we had to create our own struct and its own method 
 \boldsymbol{Java: }
 The stack class in Java was implemented through scratch, rather than using the Stack class in Java. Due to Java running comparatively slower than C++ owing to the Java language being interpreted, another object initialization was unnecessary if all methods were not going to be used. In fact, every call to insert(), and delete() would have had to initialize another Stack object. Additionally, other methods would have to be added onto the Stack class to complete the requirements of the modified algorithm. Therefore, creating the class would prove to be more efficient. Methods included were common ones such as push(), pop(), and peek(). But other methods added were getSecondToTop(), and initializeTraversalStack().
 
-One of the biggest challenges we had to deal with was during the delete method. We found that delete would sometimes receive a null pointer because of how seek would remove all the sentinel nodes in the bottom of the stack. Delete or Cleanup up would receive a sentinel node as a terminal node, which causes the sentinel node to be marked which is not appropriate behavior. We were unable to figure out what was causing the delete node to receive the pointer, even though we made all the necessary changes to our original FEAST algorithm to allow local recovery. Thus, testing on delete was unsuccessful.
+One of the biggest challenges we had to deal with was during the delete method. We found that delete would sometimes receive a null pointer because of how seek would remove all the sentinel nodes in the bottom of the stack. Delete or Cleanup up would receive a sentinel node as a terminal node, which causes the sentinel node to be marked which is not appropriate behavior. However, after a bit of testing and tweaking, we found that the issue was caused during the seek operation. When the seek operation traversed through the BST, if it encountered a flagged node, it would remove the node by creating a SeekRecord object and sending it to clean up. We found that the SeekRecord object it created was incorrect; therefore, after fixing that issue we were able to make it properly delete nodes.
 
 
 \boldsymbol{C++: }
@@ -172,7 +172,7 @@ When it came to testing the C++ implementation, we mimicked the Java concurrent 
 \end{table}
 
 \subsection{Java (Modified)}\label{AA}
-After finishing up the testing for our original Java program that implemented the FEAST algorithm, we then started to test the modified Java algorithm. When testing the modified algorithm we were able to test insert and search, however we failed when testing delete which means we also failed in testing insert and delete together. As said earlier, we followed the implementation of the FEAST Local Recovery algorithm, however we were unable to figure out why the sentinel nodes were getting marked or flagged. 
+After finishing up the testing for our original Java program that implemented the FEAST algorithm, we then started to test the modified Java algorithm. When testing the modified algorithm we were able to successfully test insert, search, and a mixture of insert and delete. Results below show that in most cases, the modified version of the Java implementation ran slower than the unmodified version.
 
 \begin{table}[htbp]
 \caption{Java (Modified) Results in milliseconds}
@@ -182,11 +182,11 @@ After finishing up the testing for our original Java program that implemented th
 \cline{2-6} 
 \textbf{\textit{Iterations}}& \textbf{\textit{Insert}}& \textbf{\textit{Delete}}& \textbf{\textit{Search}}& \textbf{\textit{Insert and Delete}}\\
 \hline
-4,000& 27.4ms& N/A& 4.6ms& N/A  \\
+4,000& 27.4ms& 6.4& 4.6ms& 23.6  \\
 \hline
-40,000& 77.6ms& N/A& 35.4ms& N/A \\
+40,000& 77.6ms& 41.6& 35.4ms& 68.8 \\
 \hline
-400,000& 320.8ms& N/A& 145.2ms& N/A \\
+400,000& 320.8ms& 142.2& 145.2ms& 297.2 \\
 \hline
 \end{tabular}
 \label{tab1}
@@ -218,7 +218,7 @@ For testing the C++ modified implementation, we used the exact same test we used
 \section{Evaluation}
 We have implemented the FEAST algorithm in Java and C++ as well as their modified versions. The Java implementation of FEAST does not seem to perform as well as the C++ implementation in the execution of a mix of Insert and Delete operations together. However, the Java implementation does perform slightly better than the C++ implementation in the 400,000 iteration test in the execution of the delete and search operations. In the 40,000 and 4,000 iteration tests, however, the Java implementation does not outperform the C++ implementation in the execution of any of the operations.
 
-We also implemented the modified versions of the Java and C++ implementations that were suggested by the research paper that we were referencing. Unfortunately, we were unable to implement the modified delete operation for the Java implementation. Contrary to our assumptions, we found that the modified versions of the Java and C++ implementations did not perform better than their original counterparts. For the modified Java implementation, the insert operation in all iterations took almost twice the amount of time to complete the task than its unmodified counterpart. On the other hand, the search operations for the modified Java implement took approximately the same amount of time as its unmodified counterpart. In the case of the modified C++ implementation, both the insert and delete operations for all iterations took approximately twice the amount of time taken by its unmodified counterpart. The search operation for the modified C++ implementation was relatively similar in performance to its unmodified counterpart.
+We also implemented the modified versions of the Java and C++ implementations that were suggested by the research paper that we were referencing. Contrary to our assumptions, we found that the modified versions of the Java and C++ implementations did not perform better than their original counterparts. For the modified Java implementation, the insert operation in all iterations took almost twice the amount of time to complete the task than its unmodified counterpart. On the other hand, the search operations for the modified Java implement took approximately the same amount of time as its unmodified counterpart. In the case of the modified C++ implementation, both the insert and delete operations for all iterations took approximately twice the amount of time taken by its unmodified counterpart. The search operation for the modified C++ implementation was relatively similar in performance to its unmodified counterpart.
 
 In conclusion, we have observed that the Java implementation of the FEAST algorithm performs worse overall than the C++ implementation of the algorithm, despite its better performance in search operations. We have also found that the modified versions of the Java and C++ implementations are demonstrably worse in performance than both of the original Java and C++ implementations. A reason as to why the modified version of the algorithms did not perform as well could be due to the number of threads. When the researchers tested the FEAST algorithm, the algorithm was tested with 6 to 96 threads. Contrastingly, we tested the algorithm with 4 threads due to limitations on the compute power. 
 
