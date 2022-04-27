@@ -6,7 +6,7 @@ Modfied FEAST implementation
 * Then type "java ConcurrentBSTModify"
 
 ## Testing Notes
-When running the concurrent test you can choose how mnay iterations each thread does by commenting and uncommenting one of the three iteration variables
+When running the concurrent test you can choose how many iterations each thread does by commenting and uncommenting one of the three iteration variables
 
 ## To Run our Test Code in the Command Line:
 Test Add/Insert:
