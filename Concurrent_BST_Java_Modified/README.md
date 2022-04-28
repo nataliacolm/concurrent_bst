@@ -9,14 +9,6 @@ Modfied FEAST implementation
 When running the concurrent test you can choose how many iterations each thread does by commenting and uncommenting one of the three iteration variables
 
 ## To Run our Test Code in the Command Line:
-Test Add/Insert:
-* First type "javac TestAdd.java"
-* Then type "java TestAdd"
-
-Test Delete/Remove:
-* First type "javac TestDelete.java"
-* Then type "java TestDelete"
-
 Test Add/Insert Concurrent:
 * First type "javac TestAddConcurrent.java"
 * Then type "java TestAddConcurrent"
